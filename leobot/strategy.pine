@@ -1,0 +1,83 @@
+// Greeffer's Donchian Channel Study
+// @version=4
+//@Greeffer
+// S T U D Y
+// study(shorttitle="Greeffer's Study", title="Study", overlay=true)
+
+// S T R A T E G Y 
+strategy(
+     "Strategy", 
+     "Strategy",
+     overlay=true, 
+     pyramiding=10,
+     default_qty_type=strategy.fixed,
+     default_qty_value=0.001,
+     initial_capital=50,
+     commission_type=strategy.commission.percent,
+     commission_value=0.1     )
+
+// I N P U T S
+sma = input(title="sma", type=input.integer, defval=250)
+symbol = "BTCUSDT" //symbol = "ETHUSDT"
+var upperAmount = 0.001
+var lowerAmount = 0.001
+crossMiddle = false
+volumeMA = input(title="volume ma period", type=input.integer, defval=200)
+volMultiplyer = input(title="volume multiplyer", type=input.integer, defval=3)
+donchianupper = input(title="upper donchian channel", type=input.integer, defval=1440)
+donchianlower = input(title="lower donchian channel", type=input.integer, defval=1440)
+
+// V A R S
+short = false
+long = false
+stopshort = close + 500.00
+stoplong = close - 500.00
+
+//----------------------?
+//symbol = syminfo.ticker
+
+// D O N C H I A N   C H A N N E L S
+lower = lowest(close,donchianlower)
+upper = highest(close,donchianupper)
+middle= (upper-lower)/2+lower
+plot(middle, title='Middle', color=color.green, linewidth=1)
+plot(upper, title='Upper', color=color.orange, linewidth=1)
+plot(lower, title='Lower', color=color.orange, linewidth=1)
+
+// S M A
+plot(sma(close,sma))
+
+// V O L U M E
+volMA = sma(volume, 200)
+//upperVol = highest(volume, 200)
+upperVol = volMA*volMultiplyer
+
+// E N T R Y / E X I T   C o n d i t i o n s 
+// S h o r t
+if high>=upper and volume>upperVol
+    short:=true
+else 
+    short:=false
+
+// L o n g :
+if low<=lower and volume>upperVol
+    long:=true
+else
+    long:=false
+
+// E x i t
+if cross(close, middle)
+    crossMiddle:=true
+else
+    crossMiddle:=false
+
+// O R D E R S :
+if short==true
+    //alert(message='{"side":"short","stopPrice":"'+tostring(stopshort)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    //strategy.close("long", comment="close long", qty_percent=100)
+    strategy.order("order", long=false, oca_name="order", qty=0.001, stop=stopshort, comment="short")
+
+if long==true
+    //alert(message='{"side":"long","stopPrice":"'+tostring(stoplong)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    //strategy.close("short", comment="close short", qty_percent=100)
+    strategy.order("order", long=true, oca_name="order", stop=stoplong, qty=0.001, comment="long")    
