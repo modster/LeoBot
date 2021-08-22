@@ -1,9 +1,7 @@
 module.exports = async function (context, req) {
     context.log('     .~~~~~~~~~~~~~~~~~~L3OBOT~~~~~~~~~~~~~~~~~.    ');
     try {
-        const binance = require('../lib/header.js') ///<-------------
-        //const balance = require('../lib/balance.js') ///<-------------
-
+        const binance = require('../lib/header.js')
         // Variables:
         const symbol = req.body.symbol
         const side = req.body.side
@@ -14,8 +12,17 @@ module.exports = async function (context, req) {
         const type = "STOP_MARKET"
         const takeProfit = req.body.takeProfit
         const limit = req.body.limit
-                
-        // Market BUY order with a stop loss:
+        
+        // Market Order: BUY
+        if (side == "marketBuy") {
+            console.info(await binance.futuresMarketBuy(symbol, amount))
+        }
+        // Market Order: SELL
+        if (side == "marketSell") {
+            console.info(await binance.futuresMarketSell(symbol, amount))
+        }
+
+        // Market Order: BUY w/ a stop loss:
         if (side == "long") {
             // console.info(await binance.futuresCancelAll("BTCUSDT"))
             // console.info(await binance.futuresMarketBuy(symbol, amount, { reduceOnly: true }))
@@ -27,7 +34,7 @@ module.exports = async function (context, req) {
             // console.info(await binance.futuresMarketSell(symbol, amount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
         }
 
-        // Market SELL ortder with a stop loss:
+        // Market Order: SELL w/ a stop loss:
         if (side == "short") {
             // console.info(await binance.futuresCancelAll("BTCUSDT"))
             // console.info(await binance.futuresMarketSell(symbol, amount, { reduceOnly: true }))
