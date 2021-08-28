@@ -21,6 +21,20 @@ module.exports = async function (context, req) {
         if (side == "marketSell") {
             console.info(await binance.futuresMarketSell(symbol, amount))
         }
+        
+        // Limit Buy Order w/ a stop loss:
+        if (side == "limitBuy") {
+            console.info(await binance.futuresBuy(symbol, amount, limit))
+            console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
+        }
+
+        // Limit Sell Order w/ a stop loss:
+        if (side == "limitSell") {
+            console.info(await binance.futuresSell(symbol, amount, limit))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
+        }
 
         // Market Order: BUY w/ a stop loss:
         if (side == "long") {
@@ -28,8 +42,8 @@ module.exports = async function (context, req) {
             // console.info(await binance.futuresMarketBuy(symbol, amount, { reduceOnly: true }))
             console.info(await binance.futuresMarketBuy(symbol, amount))
             // console.info(await binance.futuresBuy(symbol, amount, limit))
-            console.info(await binance.futuresMarketSell(symbol, amount, { type: type, stopPrice: stopPrice, reduceOnly: true }))
-            // console.info(await binance.futuresMarketSell(symbol, amount, { type: type, stopPrice: stpPrc, closePosition: true }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
+            // console.info(await binance.futuresMarketSell(symbol, amount, { typr: "STOP_MARKET", stopPrice: stpPrc, closePosition: true }))
             // console.info(await binance.futuresSell(symbol, amount, limit, { reduceOnly: true }))
             // console.info(await binance.futuresMarketSell(symbol, amount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
         }
@@ -40,8 +54,8 @@ module.exports = async function (context, req) {
             // console.info(await binance.futuresMarketSell(symbol, amount, { reduceOnly: true }))
             console.info(await binance.futuresMarketSell(symbol, amount))
             // console.info(await binance.futuresSell(symbol, amount, limit))
-            console.info(await binance.futuresMarketBuy(symbol, amount, { type: type, stopPrice: stopPrice, reduceOnly: true }))
-            // console.info(await binance.futuresMarketBuy(symbol, amount, { type: type, stopPrice: stopPrice, closePosition: true }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
+            // console.info(await binance.futuresMarketBuy(symbol, amount, { typr: "STOP_MARKET", stopPrice: stopPrice, closePosition: true }))
             // console.info(await binance.futuresBuy(symbol, amount, limit, { reduceOnly: true }))
             // console.info(await binance.futuresMarketBuy(symbol, baseamount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
         }
@@ -51,30 +65,16 @@ module.exports = async function (context, req) {
             console.info(await binance.futuresCancelAll("BTCUSDT"))
             // console.info(await binance.futuresSell(symbol, amount, limit, { reduceOnly: true}))
             // console.info(await binance.futuresMarketSell(symbol, amount, { reduceOnly: true}))
-            console.info(await binance.futuresMarketSell(symbol, amount, { type: type, stopPrice: stopPrice, priceProtect: true, closePosition: true }))
-            // console.info(await binance.futuresMarketSell(symbol, amount, { type: type, stopPrice: stopPrice, reduceOnly: true }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, priceProtect: true, closePosition: true }))
+            // console.info(await binance.futuresMarketSell(symbol, amount, { typr: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
         }
 
         if (side == "exitShort") {
             console.info(await binance.futuresCancelAll("BTCUSDT")) // make timeinforce order
             // console.info(await binance.futuresBuy(symbol, amount, limit, { reduceOnly: true }))
             // console.info(await binance.futuresMarketBuy(symbol, amount, { reduceOnly: true }))
-            console.info(await binance.futuresMarketBuy(symbol, amount, { type: type, stopPrice: stopPrice, priceProtect: true, closePosition: true }))
-            // console.info(await binance.futuresMarketBuy(symbol, amount, { type: type, stopPrice: stopPrice, reduceOnly: true }))
-        }
-
-        if (side == "closeLong") {
-            //console.info(await binance.futuresCancelAll("BTCUSDT"))
-            console.info(await binance.futuresMarketSell(symbol, amount, { reduceOnly: true }))
-            // console.info(await binance.futuresMarketSell(symbol, baseamount, { reduceOnly: true}))
-            // console.info(await binance.futuresMarketSell(symbol, baseamount, { type: type, stopPrice: stopPrice, priceProtect: true, closePosition: true }))
-        }
-
-        if (side == "closeShort") {
-            // console.info(await binance.futuresCancelAll("BTCUSDT")) // make timeinforce order
-            console.info(await binance.futuresMarketBuy(symbol, amount, { reduceOnly: true }))
-            // console.info(await binance.futuresMarketBuy(symbol, baseamount, { reduceOnly: true }))
-            // console.info(await binance.futuresMarketBuy(symbol, baseamount, { type: type, stopPrice: stopPrice, priceProtect: true, closePosition: true }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, priceProtect: true, closePosition: true }))
+            // console.info(await binance.futuresMarketBuy(symbol, amount, { typr: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
         }
 
         // Exit and existing long position. Uses reduceOnly flag, bracket limit orders:

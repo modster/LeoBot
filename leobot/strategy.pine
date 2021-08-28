@@ -2,19 +2,22 @@
 // @version=4
 //@Greeffer
 // S T U D Y
-// study(shorttitle="Greeffer's Study", title="Study", overlay=true)
+// study(shorttitle="Greeffer's Donchian Channel Study", title="Greeffer's Study", overlay=true)
 
 // S T R A T E G Y 
 strategy(
-     "Strategy", 
-     "Strategy",
+     "Greeffer's Donchian Channel Strategy",
+     "Greeffer's Strategy",
      overlay=true, 
      pyramiding=10,
-     default_qty_type=strategy.fixed,
-     default_qty_value=0.001,
-     initial_capital=50,
+     default_qty_type=strategy.percent_of_equity,
+     default_qty_value=150,
+     initial_capital=5000,
      commission_type=strategy.commission.percent,
-     commission_value=0.1     )
+     commission_value=0.1,
+     margin_long=1./30*50, 
+     margin_short=1./30*50
+     )
 
 // I N P U T S
 sma = input(title="sma", type=input.integer, defval=250)
@@ -26,19 +29,21 @@ volumeMA = input(title="volume ma period", type=input.integer, defval=200)
 volMultiplyer = input(title="volume multiplyer", type=input.integer, defval=3)
 donchianupper = input(title="upper donchian channel", type=input.integer, defval=1440)
 donchianlower = input(title="lower donchian channel", type=input.integer, defval=1440)
+takeprofit = input(title="take profit", type=input.float, defval=1000.00, step=0.01)
+stops = input(title="stops", type=input.float, defval=500.00, step=0.01)
 
 // V A R S
 short = false
 long = false
-stopshort = close + 500.00
-stoplong = close - 500.00
+stopshort = close + stops
+stoplong = close - stops
 
 //----------------------?
 //symbol = syminfo.ticker
 
 // D O N C H I A N   C H A N N E L S
-lower = lowest(close,donchianlower)
-upper = highest(close,donchianupper)
+lower = lowest(donchianlower)
+upper = highest(donchianupper)
 middle= (upper-lower)/2+lower
 plot(middle, title='Middle', color=color.green, linewidth=1)
 plot(upper, title='Upper', color=color.orange, linewidth=1)
@@ -65,19 +70,9 @@ if low<=lower and volume>upperVol
 else
     long:=false
 
-// E x i t
-if cross(close, middle)
-    crossMiddle:=true
-else
-    crossMiddle:=false
-
 // O R D E R S :
-if short==true
-    //alert(message='{"side":"short","stopPrice":"'+tostring(stopshort)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
-    //strategy.close("long", comment="close long", qty_percent=100)
-    strategy.order("order", long=false, oca_name="order", qty=0.001, stop=stopshort, comment="short")
-
-if long==true
-    //alert(message='{"side":"long","stopPrice":"'+tostring(stoplong)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
-    //strategy.close("short", comment="close short", qty_percent=100)
-    strategy.order("order", long=true, oca_name="order", stop=stoplong, qty=0.001, comment="long")    
+TP = takeprofit * 100
+strategy.entry("short", strategy.short, limit=upper, stop=1, when=short)
+strategy.entry("long", strategy.long, limit=lower, stop=1, when=long)
+strategy.exit("tp-short", from_entry="short", profit=TP)
+strategy.exit("tp-long", from_entry="long", profit=TP)
