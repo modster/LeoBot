@@ -2,7 +2,7 @@
 // @version=4
 //@Greeffer
 // S T U D Y
-// study(shorttitle="Greeffer's Donchian Channel Study", title="Greeffer's Study", overlay=true)
+// study(shorttitle="Greeffer's Study", title="Greeffer's  Donchian Channel Study", overlay=true)
 
 // S T R A T E G Y 
 strategy(
