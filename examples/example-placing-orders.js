@@ -1,5 +1,5 @@
 // P L A C I N G  O R D E R S
-// Some examples of how to place different types of orders on Binance Futures 
+// Some examples of the most common types of orders placed on Binance Futures Exchange 
 // using node-binance-api and Azure Functions
 
 if (side == "long") {
@@ -56,3 +56,12 @@ if (side == "short") {
     // Take Profit Market Order:
     console.info(await binance.futuresMarketBuy(symbol, baseamount, { type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
 }
+
+// Others:
+// another way to tale-profit:
+// console.info(await binance.futuresSell(symbol, amount, limit, { reduceOnly: true}))
+// console.info(await binance.futuresBuy(symbol, amount, limit, { reduceOnly: true }))
+
+// using priceProtect flag:
+// console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, priceProtect: true, closePosition: true }))
+// console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, priceProtect: true, closePosition: true }))

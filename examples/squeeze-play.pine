@@ -1,0 +1,51 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Greeffer
+// This PineScript uses alertcondition() so an alert must be created for both long and short squeeze
+//@version=4
+
+// S T U D Y
+study("My Squeeze Play", "Squeeze Study", overlay=true)
+
+// S T R A T E G Y 
+//strategy(
+//     "Sqeeze Strategy", 
+//     "Squeeze Strategy",
+//     overlay=true, 
+//     pyramiding=10,
+//    default_qty_type=strategy.fixed,
+//     default_qty_value=0.001,
+//     initial_capital=50,
+//     commission_type=strategy.commission.percent,
+//     commission_value=0.1
+//     )
+
+symbol = "BTCUSDT"
+amount=0.001
+sell=false
+buy=false
+
+expr1 = ohlc4+5000.00
+expr2 = ohlc4-5000.00
+
+s1 = security(symbol="BTCUSDT", resolution="5", expression=expr1, lookahead=barmerge.lookahead_on)
+s2 = security(symbol="BTCUSDT", resolution="5", expression=expr2, lookahead=barmerge.lookahead_on)
+plot(s1)
+plot(s2)
+
+if high>s1
+    sell:=true
+else
+    sell:=false
+
+if low<s2
+    buy:=true
+else
+    buy:=false
+
+// S E L L
+alertcondition(sell, "short squeeze", message='{"side":"shortSqueeze","symbol":"BTCUSDT", "amount":"0.001"}')
+//strategy.order("order", long=false, oca_name="order", qty=0.001, comment="sell", when=high>s1)
+
+// B U Y
+alertcondition(buy, "long squeeze", message='{"side":"longSqueeze","symbol":"BTCUSDT", "amount":"0.001"}')
+//strategy.order("order", long=true, oca_name="order", qty=0.001, comment="buy", when=low<s2)    
