@@ -1,36 +1,36 @@
-// Greeffer's Donchian Channel Study
+// Greeffer's Long Strategy
 // @version=4
-//@Greeffer
+// @Greeffer
+
 // S T U D Y
-study(shorttitle="Greeffer's Study", title="Greeffer's Donchian Channel Study", overlay=true)
+study(shorttitle="Long Study", title="Greeffer's Long Study", overlay=true)
 
 // S T R A T E G Y 
 //strategy(
-//     "Greeffer's Donchian Channel Strategy", 
-//     "Greeffer's Strategy",
+//     "Greeffer's Long Strategy",
+//     "Long Strategy",
 //     overlay=true, 
 //     pyramiding=10,
 //     default_qty_type=strategy.percent_of_equity,
-//     default_qty_value=150,
+//     default_qty_value=200,
 //     initial_capital=5000,
 //     commission_type=strategy.commission.percent,
-//     commission_value=0.1,
-//     margin_long=1./30*50, 
-//     margin_short=1./30*50
+//     commission_value=0.01,
+//     margin_long=1./20*50, 
+//     margin_short=1./20*50
 //     )
 
 // I N P U T S
-symbol = "BTCUSDT" //symbol = "ETHUSDT"
-sma = input(title="sma", type=input.integer, defval=250)
+longOrShort = input(title="Long", type=input.bool, defval=true, tooltip="Uncheck to Short")
 amount = input(title="amount", type=input.float, defval=0.001, step=0.01)
 volumeMA = input(title="volume ma period", type=input.integer, defval=200)
 volMultiplyer = input(title="volume multiplyer", type=input.integer, defval=3)
 donchianupper = input(title="upper donchian channel period", type=input.integer, defval=1440)
 donchianlower = input(title="lower donchian channel period", type=input.integer, defval=1440)
-takeprofit = input(title="take profit", type=input.float, defval=1000.00, step=0.01)
 stops = input(title="stops", type=input.float, defval=500.00, step=0.01)
 
 // V A R S
+symbol = "BTCUSDT" //symbol = "ETHUSDT"
 short = false
 long = false
 stopshort = close + stops
@@ -48,7 +48,7 @@ plot(upper, title='Upper', color=color.orange, linewidth=1)
 plot(lower, title='Lower', color=color.orange, linewidth=1)
 
 // S M A
-plot(sma(close,sma))
+//plot(sma(close,sma))
 
 // V O L U M E
 volMA = sma(volume, 200)
@@ -69,12 +69,20 @@ else
     long:=false
 
 // O R D E R S :
-if short==true
-    alert(message='{"side":"limitSell","limit":"'+tostring(high)+'","stopPrice":"'+tostring(stopshort)+'","takeProfit":"'+tostring(high-takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
-    // must have hedge mode enabled:
-    //alert(message='{"side":"shortHedge","stopPrice":"'+tostring(stopshort)+'","takeProfit":"'+tostring(high-takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+// L o n g
+if long==true and longOrShort==true
+    alert(message='{"side":"limitBuy","limit":"'+tostring(lower)+'","stopPrice":"'+tostring(stoplong)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    //strategy.order("long", long=true, limit=lower, oca_name="order", stop=stoplong, comment="long", when=long)
 
-if long==true
-    alert(message='{"side":"limitBuy","limit":"'+tostring(low)+'","stopPrice":"'+tostring(stoplong)+'","takeProfit":"'+tostring(low+takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
-    // must have hedge mode enabled:
-    //alert(message='{"side":"longHedge","stopPrice":"'+tostring(stoplong)+'","takeProfit":"'+tostring(low+takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+if short==true and longOrShort==true
+    alert(message='{"side":"closeLong","stopPrice":"'+tostring(upper[3])+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    //strategy.close("long", comment="close-long", qty_percent=100, when=short)
+
+// S h o r t
+if short==true and longOrShort==false
+    alert(message='{"side":"limitSell","limit":"'+tostring(upper)+'","stopPrice":"'+tostring(stopshort)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    // strategy.order("short", long=false, limit=upper, oca_name="order", stop=stopshort, comment="short", when=short)
+
+if long==true and longOrShort==false
+    alert(message='{"side":"closeShort","stopPrice":"'+tostring(lower[3])+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    //strategy.close("short", comment="close-short", qty_percent=100, when=long)

@@ -1,3 +1,3 @@
-{"side":"short","symbol":"BTCUSDT","amount":"0.001"}
+{"side":"marketBuy","symbol":"BTCUSDT","amount":"0.001"}
 
-{"side":"long","symbol":"BTCUSDT","amount":"0.001"}
+{"side":"marketSell","symbol":"BTCUSDT","amount":"0.001"}

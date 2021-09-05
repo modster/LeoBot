@@ -1,0 +1,80 @@
+// Greeffer's Donchian Channel Study
+// @version=4
+//@Greeffer
+// S T U D Y
+study(shorttitle="Greeffer's Study", title="Greeffer's Donchian Channel Study", overlay=true)
+
+// S T R A T E G Y 
+//strategy(
+//     "Greeffer's Donchian Channel Strategy", 
+//     "Greeffer's Strategy",
+//     overlay=true, 
+//     pyramiding=10,
+//     default_qty_type=strategy.percent_of_equity,
+//     default_qty_value=150,
+//     initial_capital=5000,
+//     commission_type=strategy.commission.percent,
+//     commission_value=0.1,
+//     margin_long=1./30*50, 
+//     margin_short=1./30*50
+//     )
+
+// I N P U T S
+symbol = "BTCUSDT" //symbol = "ETHUSDT"
+sma = input(title="sma", type=input.integer, defval=250)
+amount = input(title="amount", type=input.float, defval=0.001, step=0.01)
+volumeMA = input(title="volume ma period", type=input.integer, defval=200)
+volMultiplyer = input(title="volume multiplyer", type=input.integer, defval=3)
+donchianupper = input(title="upper donchian channel period", type=input.integer, defval=1440)
+donchianlower = input(title="lower donchian channel period", type=input.integer, defval=1440)
+takeprofit = input(title="take profit", type=input.float, defval=1000.00, step=0.01)
+stops = input(title="stops", type=input.float, defval=500.00, step=0.01)
+
+// V A R S
+short = false
+long = false
+stopshort = close + stops
+stoplong = close - stops
+
+//----------------------?
+//symbol = syminfo.ticker
+
+// D O N C H I A N   C H A N N E L S
+lower = lowest(donchianlower)
+upper = highest(donchianupper)
+middle= (upper-lower)/2+lower
+plot(middle, title='Middle', color=color.green, linewidth=1)
+plot(upper, title='Upper', color=color.orange, linewidth=1)
+plot(lower, title='Lower', color=color.orange, linewidth=1)
+
+// S M A
+plot(sma(close,sma))
+
+// V O L U M E
+volMA = sma(volume, 200)
+//upperVol = highest(volume, 200)
+upperVol = volMA*volMultiplyer
+
+// E N T R Y / E X I T   C o n d i t i o n s 
+// S h o r t
+if high>=upper and volume>upperVol
+    short:=true
+else 
+    short:=false
+
+// L o n g :
+if low<=lower and volume>upperVol
+    long:=true
+else
+    long:=false
+
+// O R D E R S :
+if short==true
+    alert(message='{"side":"limitSell","limit":"'+tostring(high)+'","stopPrice":"'+tostring(stopshort)+'","takeProfit":"'+tostring(high-takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    // must have hedge mode enabled:
+    //alert(message='{"side":"shortHedge","stopPrice":"'+tostring(stopshort)+'","takeProfit":"'+tostring(high-takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+
+if long==true
+    alert(message='{"side":"limitBuy","limit":"'+tostring(low)+'","stopPrice":"'+tostring(stoplong)+'","takeProfit":"'+tostring(low+takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
+    // must have hedge mode enabled:
+    //alert(message='{"side":"longHedge","stopPrice":"'+tostring(stoplong)+'","takeProfit":"'+tostring(low+takeprofit)+'","symbol":"'+symbol+'","close":"'+tostring(close)+'","amount":"'+tostring(amount)+'"}', freq=alert.freq_once_per_bar_close)
