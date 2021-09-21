@@ -62,13 +62,13 @@ module.exports = async function (context, req) {
 
         // Close long
         if (side == "closeLong") {
-            console.info(await binance.futuresSell(symbol, amount, limit, { reduceOnly: true }))
+            console.info(await binance.futuresSell(symbol, amount, limit))
             console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
         }
         
         // Close Short
         if (side == "closeShort") {
-            console.info(await binance.futuresBuy(symbol, amount, limit, { reduceOnly: true }))
+            console.info(await binance.futuresBuy(symbol, amount, limit))
             console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
         }
 
