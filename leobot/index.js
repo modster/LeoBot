@@ -12,7 +12,8 @@ module.exports = async function (context, req) {
         const type = "STOP_MARKET"
         const takeProfit = req.body.takeProfit
         const limit = req.body.limit
-        
+        const middle = req.body.middle
+
         // Market Order: BUY
         if (side == "marketBuy") {
             console.info(await binance.futuresMarketBuy(symbol, amount))
@@ -62,16 +63,16 @@ module.exports = async function (context, req) {
 
         // Close long
         if (side == "closeLong") {
-            console.info(await binance.futuresCancelAll(symbol))
+            // console.info(await binance.futuresCancelAll(symbol))
             // console.info(await binance.futuresSell(symbol, amount, limit, { reduceOnly: true }))
-            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, closePosition: true }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", positionSide:"long", stopPrice: middle, closePosition: true }))
         }
         
         // Close Short
         if (side == "closeShort") {
-            console.info(await binance.futuresCancelAll(symbol))
+            // console.info(await binance.futuresCancelAll(symbol))
             // console.info(await binance.futuresBuy(symbol, amount, limit, { reduceOnly: true }))
-            console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, closePosition: true }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", positionSide: "short", stopPrice: middle, closePosition: true }))
         }
 
         // Hedge Mode, Long, work in progress:
@@ -79,16 +80,16 @@ module.exports = async function (context, req) {
             // console.info(await binance.futuresCancelAll("BTCUSDT")) // make timeinforce order
             // to do: add an if statement to see if there's any open poisition and if there are close them
             // first change leverage to 20x
-            // console.info( await binance.futuresLeverage( symbol, 20 ) );
+            console.info( await binance.futuresLeverage( symbol, 20 ) );
             console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "long" }))
-            console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "long", type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "long", type: "STOP_MARKET", stopPrice: stopPrice }))
             // console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "long", type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit, reduceOnly: true} ))
             // hedge:
             // increase leverage, our take profit is the other position's stopPrice
-            // console.info( await binance.futuresLeverage( symbol, 80 ) );
+            console.info( await binance.futuresLeverage( symbol, 100 ) );
             console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "short" }))
-            // console.info(await binance.futuresMarketBuy(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
-            console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "short", type: "TAKE_PROFIT_MARKET", stopPrice: stopPrice, reduceOnly: true} ))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide:"short", type: "STOP_MARKET", stopPrice: middle }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "short", type: "TAKE_PROFIT_MARKET", stopPrice: stopPrice } ))
         }
         
         // Hedge Mode, Short, work in progress:
@@ -96,16 +97,16 @@ module.exports = async function (context, req) {
             // console.info(await binance.futuresCancelAll("BTCUSDT"))
             // to do: add an if statement to see if there's any open poisition and if there are close them
             // change leverage to 20x (or not)
-            // console.info( await binance.futuresLeverage( symbol, 20 ) );
+            console.info( await binance.futuresLeverage( symbol, 20 ) );
             console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "short" }))
-            console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "long", type: "STOP_MARKET", stopPrice: stopPrice }))
+            console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "short", type: "STOP_MARKET", stopPrice: stopPrice }))
             // console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "long", type: "TAKE_PROFIT_MARKET", stopPrice: takeProfit } ))
             // hedge:
             // increase leverage, our take profit is the other position's stopPrice
-            // console.info( await binance.futuresLeverage( symbol, 120 ) );
+            console.info( await binance.futuresLeverage( symbol, 100 ) );
             console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "long" }))
-            // console.info(await binance.futuresMarketSell(symbol, amount, { type: "STOP_MARKET", stopPrice: stopPrice, reduceOnly: true }))
-            console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "short", type: "TAKE_PROFIT_MARKET", stopPrice: stopPrice } ))
+            console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "long", type: "STOP_MARKET", stopPrice: middle }))
+            console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "long", type: "TAKE_PROFIT_MARKET", stopPrice: stopPrice } ))
         }
 
         // Exit an existing long position. Uses reduceOnly flag, bracket limit orders:
