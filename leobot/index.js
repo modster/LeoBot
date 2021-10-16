@@ -13,6 +13,7 @@ module.exports = async function (context, req) {
         const takeProfit = req.body.takeProfit
         const limit = req.body.limit
         const middle = req.body.middle
+        const hedgeLeverage = 80
 
         // Market Order: BUY
         if (side == "marketBuy") {
@@ -92,7 +93,7 @@ module.exports = async function (context, req) {
 
             // H E D G E :
             // increase leverage:
-            console.info(await binance.futuresLeverage(symbol, 100));
+            console.info(await binance.futuresLeverage(symbol, hedgeLeverage));
             // open a small, highly leveraged short
             console.info(await binance.futuresMarketSell(symbol, amount, { positionSide: "short" }))
             // set a stop:
@@ -117,7 +118,7 @@ module.exports = async function (context, req) {
 
             // H E D G E :
             // increase leverage:
-            console.info(await binance.futuresLeverage(symbol, 100));
+            console.info(await binance.futuresLeverage(symbol, hedgeLeverage));
             // open a small, highly leveraged short:
             console.info(await binance.futuresMarketBuy(symbol, amount, { positionSide: "long" }))
             // set a stop:
@@ -144,6 +145,43 @@ module.exports = async function (context, req) {
                 lmt = lmt - 2000.00
                 console.info(`lmt: ${lmt}`)
             }
+        }
+
+        // Pairs with bbHedge.pine, experimental
+        if (side == "bbHedge") {
+            let orders = [
+                {
+                    symbol: "BTCUSDT",
+                    side: "BUY",
+                    type: "MARKET",
+                    quantity: "0.001",
+                    positionSide: "LONG"
+                },
+                {
+                    symbol: "BTCUSDT",
+                    side: "SELL",
+                    type: "MARKET",
+                    quantity: "0.001",
+                    positionSide: "SHORT"
+                },
+                {
+                    symbol: "BTCUSDT",
+                    side: "BUY",
+                    type: "STOP_MARKET",
+                    quantity: "0.001",
+                    positionSide: "LONG",
+                    stopPrice: stopPrice
+                },
+                {
+                    symbol: "BTCUSDT",
+                    side: "SELL",
+                    type: "STOP_MARKET",
+                    quantity: "0.001",
+                    positionSide: "SHORT",
+                    stopPrice: stopPrice
+                }
+            ]
+            console.info(await binance.futuresMultipleOrders(orders));
         }
 
         // Req body trace:

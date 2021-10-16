@@ -1,0 +1,171 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Greeffer
+
+//@version=5
+
+// I N D I C A T O R   1
+// indicator(shorttitle="BB Indicator", title="Bollinger Bands Indicator", overlay=true)
+
+
+// I N D I C A T O R   2
+// indicator(shorttitle="BB Indicator", title="Bollinger Bands Indicator", precision=6, overlay=false)
+
+
+// S T R A T E G Y 
+strategy(
+     "Greeffer's Bolinger Band Strategy",
+     "BB Strategy",
+     overlay=true, 
+     pyramiding=1,
+     default_qty_type=strategy.percent_of_equity,
+     default_qty_value=200,
+     initial_capital=5000,
+     commission_type=strategy.commission.percent,
+     commission_value=0.01,
+     margin_long=1./20*50, 
+     margin_short=1./20*50
+     )
+
+
+// I N P U T S
+length = input.int(20, minval=1)
+src = input(close, title="Source")
+mult = input.float(2.0, minval=0.001, maxval=50, title="StdDev")
+
+
+// V A R I B L E S
+longOrShort = false
+long = false
+short = false
+
+
+// B O L L I N G E R   B A N D S
+basis = ta.sma(src, length)
+dev = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+plot(basis, "Basis", color=color.rgb(150, 33, 243, 60)) ///<-=------------------------------------color
+p1 = plot(upper, "Upper", color=color.rgb(150, 33, 243, 25))
+p2 = plot(lower, "Lower", color=color.rgb(33, 150, 243, 25))
+fill(p1, p2, title = "Background", color=color.rgb(33, 150, 243, 95))
+
+
+// B B W I D T H
+bbWidth = ta.bbw(src, length, mult)
+
+
+// SMA
+bbWidthSMA = ta.sma(bbWidth, 100)
+
+
+// E M A s
+ema08 = ta.ema(close, 8)
+ema17 = ta.ema(close,17)
+ema72 = ta.ema(close,72)
+
+red = request.security("BTCUSDT", "240", ema08)
+orange = request.security("BTCUSDT", "240", ema17)
+yellow = request.security("BTCUSDT", "240", ema72)
+
+// plots = 2500 // optional: plot this many bars back
+plot(red,title="EMA 08", color=color.red, linewidth=1, style=plot.style_line)
+plot(orange, title="EMA 17", color=color.orange, linewidth=2, style=plot.style_line)
+plot(yellow,title="EMA 72", color=color.yellow, linewidth=3, style=plot.style_line)
+
+
+// C O N D I T I O N S
+
+// LongOrShort: 
+// if true we're long,
+if red>orange and orange>yellow
+    longOrShort:=true
+    
+// if not we're short
+if red<orange and orange<yellow
+    longOrShort:=false
+
+// Long:
+if bbWidth<bbWidthSMA and orange>yellow and red >orange//ta.crossover(close, upper) 
+    long:=true
+else
+    long:=false
+
+// Short:
+if bbWidth<bbWidthSMA and orange<yellow and red<orange //ta.crossover(close, upper) 
+    short:=true
+else
+    short:=false
+
+
+// O R D E R S
+
+// Long:
+if long==true and longOrShort==true
+    // alert(message='{"side":"longHedge","stopPrice":"'+str.tostring(math.round(lower))+'","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(entryAmount)+'"}', freq=alert.freq_once_per_bar_close)
+    strategy.entry("long", strategy.long)
+
+if short==true and longOrShort==true
+    // alert(message='{"side":"closeLong","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(exitAmount)+'"}', freq=alert.freq_once_per_bar_close)
+    strategy.exit("exitLong", from_entry="long", qty_percent=100, stop=math.round(yellow))
+
+// Short:
+if short==true and longOrShort==false
+    //alert(message='{"side":"shortHedge","stopPrice":"'+str.tostring(math.round(upper))+'","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(entryAmount)+'"}', freq=alert.freq_once_per_bar_close)
+    strategy.entry("short", strategy.short)
+
+if long==true and longOrShort==false
+    // alert(message='{"side":"closeShort","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(exitAmount)+'"}', freq=alert.freq_once_per_bar_close)
+    strategy.exit("exitShort", from_entry="short", qty_percent=100, stop=math.round(yellow))
+
+
+
+// // Long signal:
+// if ta.crossover(close, upper) and longOrShort==true // and bbWidth<bbWidthSMA //<-----------------------------------?
+//     longEntryCondition := true
+// else
+//     longEntryCondition := false
+
+// // Short:
+// if ta.crossunder(close, lower) and longOrShort==false // and bbWidth<bbWidthSMA//<-----------------------------------?
+//     shortEntryCondition := true
+// else
+//     shortEntryCondition := false
+
+// E X I T S
+// Long:
+// if ta.crossunder(bbWidth, bbWidthSMA) and orange<yellow
+//     longExitCondition:=true
+// else
+//     longExitCondition:=false
+
+// // Short:
+// if ta.crossover(close, upper) and orange>yellow
+//     shortExitCondition:=true
+// else
+//     shortExitCondition:=false
+
+
+// // E N T R I E S
+// // Long:
+// if (longEntryCondition)
+//     strategy.entry("long", strategy.long)
+//     //longPosition:=true
+
+// // Short:
+// if (shortEntryCondition)
+//     strategy.entry("short", strategy.short)
+//     //shortPosition:=true
+
+
+// // E X I T S
+// // Long:
+// if (longExitCondition)
+//     strategy.close("long", when=shortExitCondition, comment="exitLong", qty_percent=100)//, trail_price=donUpper, trail_offset=10000)
+// //  // strategy.exit("exitLong", from_entry="long", qty_percent=100)//, trail_price=donUpper, trail_offset=10000)
+
+// // Short:
+// if (shortExitCondition)
+//     strategy.close("short", when=shortExitCondition, comment="exitShort", qty_percent=100)//, trail_price=donUpper, trail_offset=10000)
+// // // strategy.exit("exitShort", from_entry="short", qty_percent=100)//, trail_price=donUpper, trail_offset=10000)
+
