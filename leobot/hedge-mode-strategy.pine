@@ -1,0 +1,114 @@
+// @Greeffer Hedge Mode Study
+
+// @version=5
+
+// S T U D Y
+// indicator(shorttitle="Hedge Study", title="Greeffer's Hedge Mode Study", overlay=true)
+
+// S T R A T E G Y 
+strategy(
+     "Greeffer's Hedge Mode Strategy",
+     "Hedge Strategy",
+     overlay=true, 
+     pyramiding=1,
+     default_qty_type=strategy.percent_of_equity,
+     default_qty_value=200,
+     initial_capital=5000,
+     commission_type=strategy.commission.percent,
+     commission_value=0.01,
+     margin_long=1./20*50, 
+     margin_short=1./20*50
+     )
+
+// I N P U T S
+longOrShort = input(title="Long", defval=true, tooltip="Uncheck to Short") //<-------- todo: get rid of this var
+//var longOrShort = true
+entryAmount = input(title="Entry Amount", defval=0.001) //<---------------todo: handle position size in azure
+exitAmount = input(title="Exit Amount", defval=0.001)  //<----------------todo: handle position size in azure
+donchianupper = input(title="upper donchian channel period", defval=1440)
+donchianlower = input(title="lower donchian channel period", defval=1440)
+
+
+// V A R S
+symbol = "BTCUSDT" //symbol = "ETHUSDT"
+short = false
+long = false
+plots = 2000 // plot this many bars back
+
+
+// E M A s
+// plots = 2500 // plot this many bars back
+
+ema08 = ta.ema(close, 8)
+ema17 = ta.ema(close,17)
+ema72 = ta.ema(close,72)
+
+red = request.security("BTCUSDT", "240", ema08)
+orange = request.security("BTCUSDT", "240", ema17)
+yellow = request.security("BTCUSDT", "240", ema72)
+
+plot(red,title="EMA 08", color=color.red, linewidth=1, style=plot.style_line) //, show_last=plots
+plot(orange, title="EMA 17", color=color.orange, linewidth=2, style=plot.style_line)
+plot(yellow,title="EMA 72", color=color.yellow, linewidth=3, style=plot.style_line)
+
+
+// D O N C H I A N   C H A N N E L S
+lower = ta.lowest(donchianlower)
+upper = ta.highest(donchianupper)
+middle= (upper-lower)/2+lower
+plot(middle, title='Middle', color=color.green, linewidth=1)
+plot(upper, title='Upper', color=color.orange, linewidth=1) 
+plot(lower, title='Lower', color=color.orange, linewidth=1)
+
+
+// B O L L I N G E R   B A N D S
+//length = input(20, minval=1)
+//src = input(close, title="Source")
+//mult = input(4.0, minval=0.001, maxval=50, title="StdDev")
+//basis = sma(src, length)
+//dev = mult * stdev(src, length)
+//bbUpper = basis + dev
+//bbLower = basis - dev
+//bbw = (upper-lower)/basis
+
+
+// E N T R Y / E X I T   C o n d i t i o n s 
+
+// L o n g :
+if close>=upper and longOrShort==true
+    long:=true
+else
+    long:=false
+
+if close<=lower and longOrShort==true
+    long:=true
+else 
+    long:=false
+
+// S h o r t
+if close>=upper and longOrShort==false
+    short:=true
+else
+    short:=false
+
+if close<=lower and longOrShort==false
+    short:=true
+else 
+    short:=false
+
+
+// O R D E R S :
+
+// L o n g 
+if long==true and longOrShort==true
+    alert(message='{"side":"longHedge","stopPrice":"'+str.tostring(math.round(lower))+'","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(entryAmount)+'"}', freq=alert.freq_once_per_bar_close)
+
+if short==true and longOrShort==true
+    alert(message='{"side":"closeLong","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(exitAmount)+'"}', freq=alert.freq_once_per_bar_close)
+
+// S h o r t
+if short==true and longOrShort==false
+    alert(message='{"side":"shortHedge","stopPrice":"'+str.tostring(math.round(upper))+'","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(entryAmount)+'"}', freq=alert.freq_once_per_bar_close)
+
+if long==true and longOrShort==false
+    alert(message='{"side":"closeShort","middle":"'+str.tostring(math.round(middle))+'","symbol":"'+symbol+'","close":"'+str.tostring(close)+'","amount":"'+str.tostring(exitAmount)+'"}', freq=alert.freq_once_per_bar_close)

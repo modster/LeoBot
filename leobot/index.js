@@ -9,17 +9,33 @@ module.exports = async function (context, req) {
         const bracket = req.body.bracket
         const amount = req.body.amount
         const stopPrice = req.body.stopPrice
-        const type = "STOP_MARKET"
         const takeProfit = req.body.takeProfit
         const limit = req.body.limit
         const middle = req.body.middle
-        const hedgeLeverage = 80
+        const hedgeLeverage = 100
 
-        // Market Order: BUY
+        
+        // Spot Market Order: BUY
+        if (side == "spotMarketBuy") {
+            binance.marketBuy(symbol, amount)
+        }
+
+        // Spot Market Order: SELL
+        if (side == "spotMarketSell") {
+            binance.marketSell(symbol, amount)
+        }
+
+        // Set New Stop:
+        if (side == "setNewStop") {
+            binance.sell( symbol, amount, {stopPrice: stopPrice, type: "STOP_LOSS", reduceOnly=true}) // closePosition instead? type?
+        }
+
+        // Futures Market Order: BUY
         if (side == "marketBuy") {
             console.info(await binance.futuresMarketBuy(symbol, amount))
         }
-        // Market Order: SELL
+
+        // Futures Market Order: SELL
         if (side == "marketSell") {
             console.info(await binance.futuresMarketSell(symbol, amount))
         }
@@ -81,7 +97,7 @@ module.exports = async function (context, req) {
             // L O N G :
             // ------------------> to do: add an if statement to see if there's any open poisition and if there are close them <----------------
             // cancel all open orders
-            console.info(await binance.futuresCancelAll(symbol))
+            // console.info(await binance.futuresCancelAll(symbol))
             // change leverage to 20x:
             console.info(await binance.futuresLeverage(symbol, 20));
             // go long:
@@ -106,7 +122,7 @@ module.exports = async function (context, req) {
         if (side == "shortHedge") {
             // S H O R T :
             // cancel all open orders:
-            console.info(await binance.futuresCancelAll("BTCUSDT"))
+            // console.info(await binance.futuresCancelAll("BTCUSDT"))
             // change leverage to 20x:
             console.info(await binance.futuresLeverage(symbol, 20));
             // open a short position:
