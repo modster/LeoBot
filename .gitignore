@@ -1,3 +1,7 @@
+leobot.code-workspace
+.env
+.vscode
+
 # Logs
 logs
 *.log

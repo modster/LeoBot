@@ -15,7 +15,4 @@ LeoBot uses TradingView charts to send trade signals to an Azure Function that p
 
 ---
 
-### Please support continued development
-
-Bitcoin: bc1qjwpw6kqlh22km0ltjx3g7zpcx2d320kytt8j3l
-
+bitcoin: bc1qqk38lmlp0f0s2yse945pd0304qdnvqqqp2az9t
